@@ -40,6 +40,24 @@ android {
             resValue("string", "app_name", "Fréquence Matin")
             buildConfigField("String", "START_URL", "\"https://claude.ai/artifact/91RN5RAJ1kdwvfUWYXf9SW\"")
         }
+        create("job") {
+            dimension = "app"
+            applicationIdSuffix = ".job"
+            resValue("string", "app_name", "Fréquence Job")
+            buildConfigField("String", "START_URL", "\"https://claude.ai/artifact/PAQr6g8JgByjY77QQb91Gn\"")
+        }
+        create("revision") {
+            dimension = "app"
+            applicationIdSuffix = ".revision"
+            resValue("string", "app_name", "Fréquence Révision")
+            buildConfigField("String", "START_URL", "\"https://claude.ai/artifact/MjY7UqNP5GabVxX82qde9D\"")
+        }
+        create("trail") {
+            dimension = "app"
+            applicationIdSuffix = ".trail"
+            resValue("string", "app_name", "Fréquence Trail")
+            buildConfigField("String", "START_URL", "\"https://claude.ai/artifact/FfSfL6RSuqUadWgrxk7PKD\"")
+        }
     }
 
     buildFeatures {

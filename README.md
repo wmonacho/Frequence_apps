@@ -17,7 +17,8 @@ Chaque app Fréquence en vraie application Android : plein écran, son propre lo
 
 ## Installer sur le téléphone
 
-1. Sur le téléphone, ouvre la page **Releases** du dépôt (connecté à GitHub) et télécharge `Frequence-matin.apk`.
+1. Sur le téléphone, ouvre la page **Releases** du dépôt (connecté à GitHub) et télécharge l'APK voulue :
+   `Frequence-matin.apk`, `Frequence-job.apk`, `Frequence-revision.apk` ou `Frequence-trail.apk`.
 2. Ouvre le fichier. Android demande d'autoriser Chrome à installer des applis : accepte.
 3. Ouvre l'app et connecte-toi à claude.ai **avec ton e-mail** et le code reçu.
    Tape le code dans l'app plutôt que de cliquer sur le lien du mail, qui ouvrirait Chrome.
