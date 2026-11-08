@@ -31,7 +31,10 @@ jobs:
           mkdir -p out
           for f in $(find app/build/outputs/apk -name "*-release.apk"); do
             flavor=$(basename "$f" | sed -E 's/^app-(.*)-release\.apk$/\1/')
-            cp "$f" "out/Frequence-${flavor}.apk"
+            case "$flavor" in
+              rouille|bitabit|dodiese) cp "$f" "out/Coda-${flavor}.apk" ;;
+              *) cp "$f" "out/Frequence-${flavor}.apk" ;;
+            esac
           done
           ls -l out
 

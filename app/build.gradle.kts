@@ -58,6 +58,25 @@ android {
             resValue("string", "app_name", "Fréquence Trail")
             buildConfigField("String", "START_URL", "\"https://claude.ai/artifact/FfSfL6RSuqUadWgrxk7PKD\"")
         }
+        // Famille « Coda » : les apps d'apprentissage des langages.
+        create("rouille") {
+            dimension = "app"
+            applicationIdSuffix = ".rouille"
+            resValue("string", "app_name", "Coda Rouille")
+            buildConfigField("String", "START_URL", "\"https://claude.ai/artifact/Y2BTeqDKqqsgdtHh3scWnh\"")
+        }
+        create("bitabit") {
+            dimension = "app"
+            applicationIdSuffix = ".bitabit"
+            resValue("string", "app_name", "Coda++")
+            buildConfigField("String", "START_URL", "\"https://claude.ai/artifact/1YwUss69142sy7uszzByYJ\"")
+        }
+        create("dodiese") {
+            dimension = "app"
+            applicationIdSuffix = ".dodiese"
+            resValue("string", "app_name", "Coda Dièse")
+            buildConfigField("String", "START_URL", "\"https://claude.ai/artifact/RogiUTnurBKvh7bQ9noy8z\"")
+        }
     }
 
     buildFeatures {
