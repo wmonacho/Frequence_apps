@@ -77,6 +77,12 @@ android {
             resValue("string", "app_name", "Coda Dièse")
             buildConfigField("String", "START_URL", "\"https://claude.ai/artifact/RogiUTnurBKvh7bQ9noy8z\"")
         }
+        create("miseenprod") {
+            dimension = "app"
+            applicationIdSuffix = ".miseenprod"
+            resValue("string", "app_name", "Mise en prod")
+            buildConfigField("String", "START_URL", "\"https://claude.ai/artifact/QA3p3jZwAJe8jaXWK2xSrf\"")
+        }
     }
 
     buildFeatures {

@@ -19,7 +19,7 @@ Chaque app Fréquence en vraie application Android : plein écran, son propre lo
 
 1. Sur le téléphone, ouvre la page **Releases** du dépôt (connecté à GitHub) et télécharge l'APK voulue :
    `Frequence-matin.apk`, `Frequence-job.apk`, `Frequence-revision.apk` ou `Frequence-trail.apk`,
-   et pour les apps de langages : `Coda-rouille.apk` (Rust), `Coda-bitabit.apk` (C++) ou `Coda-dodiese.apk` (C#).
+   et pour les apps de langages : `Coda-rouille.apk` (Rust), `Coda-bitabit.apk` (C++), `Coda-dodiese.apk` (C#) ou `Coda-miseenprod.apk` (Mise en prod : terminal, Git, SQL, API, sécurité, IA).
 2. Ouvre le fichier. Android demande d'autoriser Chrome à installer des applis : accepte.
 3. Ouvre l'app et connecte-toi à claude.ai **avec ton e-mail** et le code reçu.
    Tape le code dans l'app plutôt que de cliquer sur le lien du mail, qui ouvrirait Chrome.
