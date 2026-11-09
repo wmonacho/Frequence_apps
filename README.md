@@ -32,3 +32,9 @@ Dans `app/build.gradle.kts`, ajoute un bloc dans `productFlavors` (nom, lien), p
 `app/src/<nom>/res/` (même structure que `app/src/matin/res/`).
 
 La clé `app/frequence.keystore` signe les APK. Garde le dépôt privé.
+
+## Logos des apps Coda
+
+Les sources des logos (SVG et PNG) sont dans `logos/`. `logos/generer.py` les régénère ;
+les icônes Android (`app/src/<nom>/res/drawable-nodpi/ic_launcher_fg.png` et `ic_launcher_bg.png`)
+en sont tirées, le motif réduit à 62 % pour tenir dans la zone visible du masque.

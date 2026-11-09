@@ -10,8 +10,8 @@ android {
         applicationId = "fr.frequence"
         minSdk = 26
         targetSdk = 34
-        versionCode = 1
-        versionName = "1.0"
+        versionCode = 2
+        versionName = "1.1"
     }
 
     // Même clé à chaque compilation : une nouvelle version s'installe par-dessus l'ancienne.
