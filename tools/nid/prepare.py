@@ -1,13 +1,16 @@
 """Filtre et note les annonces Bien'ici (T2/T3 Nice ≤ 1200 € CC) pour Fréquence Nid."""
 import json, math, re, html, sys
-HOME = (43.696539, 7.277563)   # 15 rue du Château, 06300 Nice (Base Adresse Nationale)
-CORE = {"Vieux Nice", "Carré d'or", "Centre-ville", "Carabacel", "Médecin", "Garibaldi", "Le Port",
+HOME = (43.698105, 7.272598)   # 12 avenue Félix Faure, 06000 Nice (Base Adresse Nationale)
+# Vieux-Nice exclu : entre le boulevard Jean-Jaurès et la colline du Château (rectangle approximatif)
+VIEUX = (43.6940, 43.6998, 7.2738, 7.2815)
+VIEUX_WORDS = r"vieille ville|place rossetti|rue droite|rue pairoli[eè]re"
+CORE = {"Carré d'or", "Centre-ville", "Carabacel", "Médecin", "Garibaldi", "Le Port",
         "Promenade des Anglais - Rue de France", "Riquier", "Mont-Boron", "Thiers - Musicien", "Acropolis - République", "Saint-Roch"}
-ZONE = {"Vieux Nice": "hypercentre", "Carré d'or": "hypercentre", "Centre-ville": "hypercentre", "Carabacel": "hypercentre",
+ZONE = {"Carré d'or": "hypercentre", "Centre-ville": "hypercentre", "Carabacel": "hypercentre",
         "Médecin": "hypercentre", "Garibaldi": "hypercentre", "Promenade des Anglais - Rue de France": "hypercentre",
         "Thiers - Musicien": "hypercentre", "Acropolis - République": "hypercentre",
         "Le Port": "port", "Riquier": "port", "Mont-Boron": "port", "Saint-Roch": "port"}
-CENTRE_WORDS = r"vieux[- ]nice|garibaldi|mass[ée]na|carr[ée] d.or|jean[- ]m[ée]decin|hyper[- ]?centre|cours saleya|port de nice|le port|place du pin|segurane|rossetti|lympia|centre[- ]ville"
+CENTRE_WORDS = r"garibaldi|mass[ée]na|carr[ée] d.or|jean[- ]m[ée]decin|hyper[- ]?centre|port de nice|le port|place du pin|segurane|lympia|centre[- ]ville"
 
 def dist(a, b):
     R = 6371000; p1, p2 = math.radians(a[0]), math.radians(b[0])
@@ -38,6 +41,8 @@ def prepare(ads):
         if bed < 1 or surf < 26 or dpe == "G": continue
         in_zone = d in CORE or (d == "Nice" and has(CENTRE_WORDS, txt))
         if not in_zone: continue
+        if d == "Vieux Nice" or has(VIEUX_WORDS, a.get("title") or ""): continue
+        if precise and VIEUX[0] <= pos["lat"] <= VIEUX[1] and VIEUX[2] <= pos["lon"] <= VIEUX[3]: continue
         if precise and dm > 1800: continue
         zone = ZONE.get(d) or ("port" if precise and pos["lon"] > 7.282 else "hypercentre")
         # --- critères
@@ -55,7 +60,7 @@ def prepare(ads):
         s += 3 if (a.get("price") or 9999) <= 1000 else 0
         s -= 10 * etud + 5 * rdc + 3 * bool(sans_asc)
         atouts, alertes = [], []
-        if dm is not None and dm <= 800: atouts.append(f"À {round(dm/80)} min à pied du 15 rue du Château")
+        if dm is not None and dm <= 800: atouts.append(f"À {round(dm/80)} min à pied du 12 avenue Félix Faure")
         if lum: atouts.append("Lumineux d'après l'annonce")
         if cuis: atouts.append("Cuisine équipée")
         if reno: atouts.append("Rénové ou en bon état")
