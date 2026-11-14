@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" fill="#2a2723"/>
+  <g fill="none" stroke-linecap="square" stroke-linejoin="bevel">
+    <!-- treillis en W (ferme Fink) -->
+    <path d="M178 246 L207 346 L256 160 L305 346 L334 246" stroke="#c7791f" stroke-width="20"/>
+    <!-- entrait -->
+    <path d="M96 352 H416" stroke="#e9c98f" stroke-width="30"/>
+    <!-- arbalétriers avec débord -->
+    <path d="M70 380 L256 136 L442 380" stroke="#e9c98f" stroke-width="32" stroke-linejoin="miter" stroke-miterlimit="8"/>
+  </g>
+  <path d="M110 420 H402" stroke="#e9c98f" stroke-opacity=".35" stroke-width="5" stroke-dasharray="16 11"/>
+</svg>

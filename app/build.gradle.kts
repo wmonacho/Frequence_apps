@@ -10,8 +10,8 @@ android {
         applicationId = "fr.frequence"
         minSdk = 26
         targetSdk = 34
-        versionCode = 2
-        versionName = "1.1"
+        versionCode = 3
+        versionName = "1.2"
     }
 
     // Même clé à chaque compilation : une nouvelle version s'installe par-dessus l'ancienne.
@@ -82,6 +82,18 @@ android {
             applicationIdSuffix = ".miseenprod"
             resValue("string", "app_name", "Mise en prod")
             buildConfigField("String", "START_URL", "\"https://claude.ai/artifact/QA3p3jZwAJe8jaXWK2xSrf\"")
+        }
+        create("charpente") {
+            dimension = "app"
+            applicationIdSuffix = ".charpente"
+            resValue("string", "app_name", "Charpente")
+            buildConfigField("String", "START_URL", "\"https://claude.ai/artifact/Nzr6oUKm7jfnAU9ewfTxEx\"")
+        }
+        create("socle") {
+            dimension = "app"
+            applicationIdSuffix = ".socle"
+            resValue("string", "app_name", "Socle")
+            buildConfigField("String", "START_URL", "\"https://claude.ai/artifact/FDyBFBZK812JUyaVd51H7N\"")
         }
     }
 
