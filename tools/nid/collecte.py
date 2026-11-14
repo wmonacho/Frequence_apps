@@ -1,6 +1,6 @@
 """Collecte quotidienne de Fréquence Nid (Bien'ici, Orpi, Laforêt, Foncia, Locservice, doublons fusionnés).
 
-Usage : python3 collecte.py <connues.json> <dossier_sortie> <date AAAA-MM-JJ>
+Usage : python3 collecte.py <connues.json> <dossier_sortie> <date AAAA-MM-JJ> [jinka.json]
 
 connues.json : liste des id d'annonces déjà présentes (fichier data/annonces.json
 de l'app + collection « annonces » de la base). Peut être un fichier absent.
@@ -61,7 +61,7 @@ def main():
     known = set(json.load(open(known_path))) if os.path.exists(known_path) else set()
     os.makedirs(os.path.join(outdir, "photos"), exist_ok=True)
 
-    raw, bilan = collect()
+    raw, bilan = collect(sys.argv[4] if len(sys.argv) > 4 else None)
     items = prepare(raw)
     live = {i["id"] for i in items}
     new = [i for i in items if i["id"] not in known]

@@ -46,11 +46,13 @@ def prepare(ads):
         if a.get("flatSharing") or has(COLOC_WORDS, txt): continue
         tete = txt[:400]   # titre et début de description : là où l'annonce dit où est le bien
         in_zone = d in CORE or (d == "Nice" and has(CENTRE_WORDS, tete) and not has(LOIN_WORDS, tete))
+        if a.get("trustZone") and not has(LOIN_WORDS, tete): in_zone = True
         if not in_zone: continue
         if d == "Vieux Nice" or has(VIEUX_WORDS, a.get("title") or ""): continue
         if precise and VIEUX[0] <= pos["lat"] <= VIEUX[1] and VIEUX[2] <= pos["lon"] <= VIEUX[3]: continue
         if precise and dm > 1800: continue
         zone = ZONE.get(d) or ("port" if precise and pos["lon"] > 7.282 else "hypercentre")
+        if not precise and d == "Nice" and has(r"\bport\b|lympia|riquier|segurane|place du pin", tete): zone = "port"
         # --- critères
         lum = has(r"lumineu|lumi[eè]re|ensoleill|traversant|baie vitr|vue d[ée]gag|[ée]tage [ée]lev|plein sud|exposition sud", txt) or has(r"sud", a.get("exposition") or "")
         cuis = has(r"cuisine[^.\n]{0,40}(?<!non )[ée]quip|cuisine[^.\n]{0,25}am[ée]nag[ée]e et [ée]quip|kitchenette [ée]quip|cuisine ouverte [ée]quip", txt)

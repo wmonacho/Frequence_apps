@@ -1,4 +1,4 @@
-"""Collecteurs de Fréquence Nid : chaque source renvoie des annonces au format « Bien'ici »
+"""Collecteurs de Fréquence Nid (+ alertes Jinka lues dans Gmail par la tâche du matin) : chaque source renvoie des annonces au format « Bien'ici »
 (mêmes noms de champs), plus src, srcLabel et url, pour passer dans prepare().
 
 Sources : Bien'ici (agrégateur d'agences), Orpi, Laforêt (API), Foncia (API), Locservice (particuliers).
@@ -189,11 +189,46 @@ def locservice():
         return [x for x in ex.map(detail, cands) if x]
 
 
+# ---------------------------------------------------------------- Jinka (alertes e-mail lues dans Gmail)
+def jinka(path):
+    """path : JSON écrit par la tâche du matin à partir des e-mails « Nouvelle annonce » de Jinka.
+    Chaque entrée : {emailId, site, price, surface, rooms, bedrooms, location, features, photo, url, date, particulier}."""
+    try:
+        items = json.load(open(path))
+    except Exception:
+        return []
+    out = []
+    for x in items:
+        site = (x.get("site") or "?").strip()
+        if re.search(r"bien.?ici|orpi|laforet|laforêt|foncia|locservice", site, re.I):
+            continue   # déjà couvert directement, avec plus de détails
+        loc = x.get("location") or "Nice"
+        feats = ", ".join(x.get("features") or [])
+        out.append({
+            "id": "jinka-%s" % x["emailId"], "src": "jinka", "srcLabel": f"Jinka · {site}", "url": x.get("url"),
+            "title": f"{loc} · {x.get('rooms')} p. · {x.get('surface')} m²",
+            "description": f"{loc}. Annonce {site} repérée par ton alerte Jinka" + (" (particulier)" if x.get("particulier") else "")
+                           + (f". {feats}." if feats else ".") + " Description complète sur l'annonce d'origine.",
+            "price": x.get("price"), "roomsQuantity": x.get("rooms"),
+            "bedroomsQuantity": x.get("bedrooms") or max((x.get("rooms") or 2) - 1, 1), "surfaceArea": x.get("surface"),
+            "hasElevator": True if re.search(r"ascenseur", feats, re.I) else None,
+            "balconyQuantity": 1 if re.search(r"balcon", feats, re.I) else 0, "hasTerrace": bool(re.search(r"terrasse", feats, re.I)),
+            "district": {"libelle": "Nice"}, "trustZone": True,   # la zone est déjà dessinée dans l'alerte Jinka
+            "photos": [{"url": x["photo"]}] if x.get("photo") else [], "publicationDate": x.get("date"),
+            "accountDisplayName": "Particulier" if x.get("particulier") else site,
+        })
+    return out
+
+
 SOURCES = {"bienici": bienici, "orpi": orpi, "laforet": laforet, "foncia": foncia, "locservice": locservice}
 
 
-def collect():
+def collect(jinka_path=None):
     ads, bilan = [], {}
+    if jinka_path:
+        got = jinka(jinka_path)
+        bilan["jinka"] = len(got)
+        ads += got
     for name, fn in SOURCES.items():
         try:
             got = fn()
