@@ -33,7 +33,7 @@ def fetch_bienici():
     ads, start = [], 0
     while True:
         f = {"size": 100, "from": start, "showAllModels": False, "filterType": "rent",
-             "propertyType": ["flat"], "maxPrice": 1200, "minRooms": 2, "maxRooms": 3,
+             "propertyType": ["flat"], "maxPrice": 1100, "minRooms": 2, "maxRooms": 3,
              "page": start // 100 + 1, "sortBy": "publicationDate", "sortOrder": "desc",
              "onTheMarket": [True], "zoneIdsByTypes": {"zoneIds": [ZONE_NICE]}}
         u = "https://www.bienici.com/realEstateAds.json?filters=" + urllib.parse.quote(json.dumps(f))

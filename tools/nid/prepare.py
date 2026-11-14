@@ -1,8 +1,10 @@
-"""Filtre et note les annonces Bien'ici (T2/T3 Nice ≤ 1200 € CC) pour Fréquence Nid."""
+"""Filtre et note les annonces Bien'ici (T2/T3 Nice ≤ 1100 € CC, sans colocation) pour Fréquence Nid."""
 import json, math, re, html, sys
 HOME = (43.698105, 7.272598)   # 12 avenue Félix Faure, 06000 Nice (Base Adresse Nationale)
 # Vieux-Nice exclu : entre le boulevard Jean-Jaurès et la colline du Château (rectangle approximatif)
 VIEUX = (43.6940, 43.6998, 7.2738, 7.2815)
+BUDGET = 1100   # € par mois charges comprises
+COLOC_WORDS = r"coloc|chambre (?:meubl[ée]e )?(?:à|a) louer|chambre dans (?:un|une)|flat ?shar"
 VIEUX_WORDS = r"vieille ville|place rossetti|rue droite|rue pairoli[eè]re"
 CORE = {"Carré d'or", "Centre-ville", "Carabacel", "Médecin", "Garibaldi", "Le Port",
         "Promenade des Anglais - Rue de France", "Riquier", "Mont-Boron", "Thiers - Musicien", "Acropolis - République", "Saint-Roch"}
@@ -39,6 +41,8 @@ def prepare(ads):
         dpe = (a.get("energyClassification") or "").upper() or None
         # --- filtres durs
         if bed < 1 or surf < 26 or dpe == "G": continue
+        if (a.get("price") or 9999) > BUDGET: continue
+        if a.get("flatSharing") or has(COLOC_WORDS, txt): continue
         in_zone = d in CORE or (d == "Nice" and has(CENTRE_WORDS, txt))
         if not in_zone: continue
         if d == "Vieux Nice" or has(VIEUX_WORDS, a.get("title") or ""): continue
