@@ -18,7 +18,7 @@ Chaque app Fréquence en vraie application Android : plein écran, son propre lo
 ## Installer sur le téléphone
 
 1. Sur le téléphone, ouvre la page **Releases** du dépôt (connecté à GitHub) et télécharge l'APK voulue :
-   `Frequence-matin.apk`, `Frequence-job.apk`, `Frequence-revision.apk` ou `Frequence-trail.apk`,
+   `Frequence-matin.apk`, `Frequence-job.apk`, `Frequence-revision.apk`, `Frequence-trail.apk` ou `Frequence-nid.apk` (recherche d'appartement à Nice),
    et pour les apps de langages : `Coda-rouille.apk` (Rust), `Coda-bitabit.apk` (C++), `Coda-dodiese.apk` (C#) `Coda-miseenprod.apk` (Mise en prod : terminal, Git, SQL, API, sécurité, IA),
    `Coda-charpente.apk` (Charpente : architecture, conception, system design) ou `Coda-socle.apk` (Socle : algorithmes, structures de données, mémoire, réseau, bases).
 2. Ouvre le fichier. Android demande d'autoriser Chrome à installer des applis : accepte.
@@ -39,4 +39,10 @@ La clé `app/frequence.keystore` signe les APK. Garde le dépôt privé.
 Les sources des logos (SVG et PNG) sont dans `logos/`. `logos/generer.py` les régénère ;
 les icônes Android (`app/src/<nom>/res/drawable-nodpi/ic_launcher_fg.png` et `ic_launcher_bg.png`)
 en sont tirées, le motif réduit à 62 % pour tenir dans la zone visible du masque.
-`logos/charpente.svg` et `logos/socle.svg` sont les sources des logos de Charpente et Socle (hors `generer.py`).
+`logos/charpente.svg`, `logos/socle.svg` et `logos/nid.svg` sont les sources des logos de Charpente, Socle et Fréquence Nid (hors `generer.py`).
+
+## Collecte de Fréquence Nid
+
+`tools/nid/collecte.py` interroge Bien'ici chaque matin (T2/T3 à Nice, 1 200 € CC max), garde l'hypercentre et le Port
+autour du 15 rue du Château, note les annonces et prépare leurs photos. La tâche planifiée l'exécute puis écrit
+les nouvelles annonces dans la base de l'app.

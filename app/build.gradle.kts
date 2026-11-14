@@ -58,6 +58,12 @@ android {
             resValue("string", "app_name", "Fréquence Trail")
             buildConfigField("String", "START_URL", "\"https://claude.ai/artifact/FfSfL6RSuqUadWgrxk7PKD\"")
         }
+        create("nid") {
+            dimension = "app"
+            applicationIdSuffix = ".nid"
+            resValue("string", "app_name", "Fréquence Nid")
+            buildConfigField("String", "START_URL", "\"https://claude.ai/artifact/C14pdjrXxFDUjvG8ZfH4EF\"")
+        }
         // Famille « Coda » : les apps d'apprentissage des langages.
         create("rouille") {
             dimension = "app"
