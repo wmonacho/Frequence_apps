@@ -1,4 +1,4 @@
-"""Collecte quotidienne de Fréquence Nid.
+"""Collecte quotidienne de Fréquence Nid (Bien'ici, Orpi, Laforêt, Foncia, Locservice, doublons fusionnés).
 
 Usage : python3 collecte.py <connues.json> <dossier_sortie> <date AAAA-MM-JJ>
 
@@ -11,13 +11,13 @@ Produit dans <dossier_sortie> :
   retirees.json    id connus qui ne sont plus en ligne
   resume.json      chiffres du jour
 """
-import base64, io, json, os, subprocess, sys, urllib.parse
+import base64, io, json, os, subprocess, sys
 import concurrent.futures as cf
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from prepare import prepare  # noqa: E402
+from sources import collect  # noqa: E402
 
-ZONE_NICE = "-170100"
 W, H, NMAX = 560, 420, 4
 
 
@@ -27,22 +27,6 @@ def curl(url, out=None):
         cmd += ["-o", out, "-w", "%{http_code}"]
     r = subprocess.run(cmd + [url], capture_output=True, text=True)
     return r.stdout
-
-
-def fetch_bienici():
-    ads, start = [], 0
-    while True:
-        f = {"size": 100, "from": start, "showAllModels": False, "filterType": "rent",
-             "propertyType": ["flat"], "maxPrice": 1100, "minRooms": 2, "maxRooms": 3,
-             "page": start // 100 + 1, "sortBy": "publicationDate", "sortOrder": "desc",
-             "onTheMarket": [True], "zoneIdsByTypes": {"zoneIds": [ZONE_NICE]}}
-        u = "https://www.bienici.com/realEstateAds.json?filters=" + urllib.parse.quote(json.dumps(f))
-        d = json.loads(curl(u))
-        page = d.get("realEstateAds") or []
-        ads += page
-        start += 100
-        if not page or start >= (d.get("total") or 0) or start >= 1000:
-            return ads
 
 
 def photo_doc(item):
@@ -77,7 +61,7 @@ def main():
     known = set(json.load(open(known_path))) if os.path.exists(known_path) else set()
     os.makedirs(os.path.join(outdir, "photos"), exist_ok=True)
 
-    raw = fetch_bienici()
+    raw, bilan = collect()
     items = prepare(raw)
     live = {i["id"] for i in items}
     new = [i for i in items if i["id"] not in known]
@@ -90,7 +74,6 @@ def main():
         p = photos.get(i["id"])
         i.pop("photoUrls", None)
         i["firstSeen"] = date
-        i["srcLabel"] = "Bien'ici"
         i["status"] = "active"
         if p:
             json.dump(p, open(os.path.join(outdir, "photos", i["id"] + ".json"), "w"))
@@ -100,7 +83,7 @@ def main():
     json.dump(out, open(os.path.join(outdir, "nouvelles.json"), "w"), ensure_ascii=False)
     gone = sorted(known - live)
     json.dump(gone, open(os.path.join(outdir, "retirees.json"), "w"))
-    resume = {"date": date, "brutes": len(raw), "retenues": len(items), "nouvelles": len(out),
+    resume = {"date": date, "sources": bilan, "brutes": len(raw), "retenues": len(items), "nouvelles": len(out),
               "retirees": len(gone), "avecPhotos": sum(1 for i in out if "photo" in i),
               "meilleure": max(out, key=lambda x: x["score"])["title"] if out else None}
     json.dump(resume, open(os.path.join(outdir, "resume.json"), "w"), ensure_ascii=False)

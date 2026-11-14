@@ -5,6 +5,7 @@ HOME = (43.698105, 7.272598)   # 12 avenue Félix Faure, 06000 Nice (Base Adress
 VIEUX = (43.6940, 43.6998, 7.2738, 7.2815)
 BUDGET = 1100   # € par mois charges comprises
 COLOC_WORDS = r"coloc|chambre (?:meubl[ée]e )?(?:à|a) louer|chambre dans (?:un|une)|flat ?shar"
+LOIN_WORDS = r"madeleine|parc imp[ée]rial|cimiez|saint[- ]isidore|ariane|pasteur|gairaut|fabron|caucade|magnan|saint[- ]augustin|bon[- ]voyage|pessicart|las planas|f[ée]ric|nice nord|saint[- ]maurice|lib[ée]ration|gorbella|ray\b|valrose|saint[- ]pierre|arenas|californie|lanterne|st[- ]antoine|bellet|mont[- ]alban|vinaigrier|corniche|l.abadie|trinit[ée]|saint[- ]laurent|cagnes|villefranche"
 VIEUX_WORDS = r"vieille ville|place rossetti|rue droite|rue pairoli[eè]re"
 CORE = {"Carré d'or", "Centre-ville", "Carabacel", "Médecin", "Garibaldi", "Le Port",
         "Promenade des Anglais - Rue de France", "Riquier", "Mont-Boron", "Thiers - Musicien", "Acropolis - République", "Saint-Roch"}
@@ -43,7 +44,8 @@ def prepare(ads):
         if bed < 1 or surf < 26 or dpe == "G": continue
         if (a.get("price") or 9999) > BUDGET: continue
         if a.get("flatSharing") or has(COLOC_WORDS, txt): continue
-        in_zone = d in CORE or (d == "Nice" and has(CENTRE_WORDS, txt))
+        tete = txt[:400]   # titre et début de description : là où l'annonce dit où est le bien
+        in_zone = d in CORE or (d == "Nice" and has(CENTRE_WORDS, tete) and not has(LOIN_WORDS, tete))
         if not in_zone: continue
         if d == "Vieux Nice" or has(VIEUX_WORDS, a.get("title") or ""): continue
         if precise and VIEUX[0] <= pos["lat"] <= VIEUX[1] and VIEUX[2] <= pos["lon"] <= VIEUX[3]: continue
@@ -83,8 +85,8 @@ def prepare(ads):
         if surf < 32: alertes.append(f"Petite surface ({surf:g} m²)")
         out.append({
             "id": re.sub(r"[^a-z0-9-]", "-", a["id"].lower())[:80],
-            "src": "bienici", "srcId": a["id"],
-            "url": "https://www.bienici.com/annonce/" + a["id"],
+            "src": a.get("src", "bienici"), "srcId": a["id"], "srcLabel": a.get("srcLabel", "Bien'ici"),
+            "url": a.get("url") or "https://www.bienici.com/annonce/" + a["id"],
             "title": (a.get("title") or "").strip() or f"{a.get('roomsQuantity')} pièces · {surf:g} m²",
             "price": round(a.get("price") or 0), "charges": a.get("charges"), "deposit": a.get("safetyDeposit"),
             "fees": round(a["agencyRentalFee"]) if a.get("agencyRentalFee") else None,
@@ -103,7 +105,40 @@ def prepare(ads):
             "photoUrls": [p.get("url") for p in (a.get("photos") or []) if p.get("url")][:8],
         })
     out.sort(key=lambda x: -x["score"])
-    return out
+    return dedoublonner(out)
+
+
+def _mots(t):
+    return set(re.findall(r"[a-zà-ÿ]{4,}", (t or "").lower()[:600]))
+
+
+def meme_bien(x, y):
+    """Deux annonces décrivent-elles le même appartement (même bien publié par deux agences ou deux sites) ?"""
+    if x["rooms"] != y["rooms"] or not x["surface"] or not y["surface"]:
+        return False
+    if abs(x["price"] - y["price"]) > max(30, 0.03 * x["price"]) or abs(x["surface"] - y["surface"]) > max(2, 0.04 * x["surface"]):
+        return False
+    if x["precise"] and y["precise"]:
+        return dist((x["lat"], x["lng"]), (y["lat"], y["lng"])) <= 300
+    a, b = _mots(x["description"]), _mots(y["description"])
+    sim = len(a & b) / max(1, min(len(a), len(b)))
+    return sim >= 0.45 or (x["zone"] == y["zone"] and abs(x["price"] - y["price"]) <= 5 and abs(x["surface"] - y["surface"]) <= 0.6)
+
+
+def dedoublonner(items):
+    """Garde une seule fiche par bien (la plus complète) et liste les autres annonces dans alsoOn."""
+    def qualite(x):
+        return (x["precise"], len(x.get("photoUrls") or []), x["src"] == "bienici", len(x["description"] or ""))
+    gardes = []
+    for x in sorted(items, key=qualite, reverse=True):
+        double = next((g for g in gardes if meme_bien(g, x)), None)
+        if double:
+            double.setdefault("alsoOn", []).append({"label": x["srcLabel"] + (" · " + x["agency"] if x.get("agency") and x["src"] == "bienici" else ""), "url": x["url"]})
+            double["photoUrls"] = double.get("photoUrls") or x.get("photoUrls")
+        else:
+            gardes.append(x)
+    gardes.sort(key=lambda x: -x["score"])
+    return gardes
 
 if __name__ == "__main__":
     ads = json.load(open(sys.argv[1]))

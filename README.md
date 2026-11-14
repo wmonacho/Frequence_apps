@@ -43,6 +43,6 @@ en sont tirées, le motif réduit à 62 % pour tenir dans la zone visible du mas
 
 ## Collecte de Fréquence Nid
 
-`tools/nid/collecte.py` interroge Bien'ici chaque matin (T2/T3 à Nice, 1 100 € CC max, sans colocation), garde l'hypercentre et le Port
+`tools/nid/collecte.py` interroge chaque matin Bien'ici, Orpi, Laforêt, Foncia et Locservice (`sources.py`), fusionne les doublons (T2/T3 à Nice, 1 100 € CC max, sans colocation), garde l'hypercentre et le Port
 autour du 12 avenue Félix Faure (Vieux-Nice exclu), note les annonces et prépare leurs photos. La tâche planifiée l'exécute puis écrit
 les nouvelles annonces dans la base de l'app.
