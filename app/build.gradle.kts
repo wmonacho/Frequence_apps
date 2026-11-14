@@ -61,7 +61,7 @@ android {
         create("nid") {
             dimension = "app"
             applicationIdSuffix = ".nid"
-            resValue("string", "app_name", "Fréquence Nid")
+            resValue("string", "app_name", "NID")
             buildConfigField("String", "START_URL", "\"https://claude.ai/artifact/C14pdjrXxFDUjvG8ZfH4EF\"")
         }
         // Famille « Coda » : les apps d'apprentissage des langages.
