@@ -4,7 +4,7 @@
 Sources : Bien'ici (agrégateur d'agences), Orpi, Laforêt (API), Foncia (API), Locservice (particuliers).
 Leboncoin, SeLoger, PAP, Logic-Immo et Jinka refusent les robots ou demandent un compte.
 """
-import html, json, re, subprocess, sys, urllib.parse
+import html, json, re, subprocess, sys, unicodedata, urllib.parse
 import concurrent.futures as cf
 
 UA = "Mozilla/5.0 (Linux; Android 14) AppleWebKit/537.36 Chrome/130 Mobile Safari/537.36"
@@ -220,6 +220,56 @@ def jinka(path):
     return out
 
 
+# ---------------------------------------------------------------- Adresse citée dans le texte → position (Base Adresse Nationale)
+VOIE = r"(?:rue|avenue|av\.?|boulevard|bd|bld|place|quai|promenade|cours|impasse|mont[ée]e|descente|traverse|all[ée]e|square|esplanade|passage)"
+ARRET = r"(?:[,.;:!()\n]|\s(?:à|a|au|aux|proche|pr[èe]s|dans|avec|et|entre|face|c[ôo]t[ée]|sur|en|nice|quartier|secteur|id[ée]al|appartement|immeuble|bel|beau|t2|t3|f2|f3)\b)"
+# Voies trop longues : leur « centre » ne dit rien de la position du logement
+TROP_LONGUES = r"promenade des anglais|rue de france|gambetta|californie|cimiez|madeleine|mont[- ]boron|fabron|napol[ée]on|route de turin|saint[- ]pierre de f[ée]ric|corniche|pessicart|bellet"
+
+
+def adresse(txt):
+    """Première adresse plausible citée dans le titre ou le début de la description."""
+    m = re.search(r"\b(\d{1,3}\s*(?:bis|ter)?\s*,?\s*)?(" + VOIE + r"\s+(?:de la |de l'|de l’|des |du |de |d'|d’)?[^\d,.;:!()\n]{3,40}?)(?=" + ARRET + r"|$)", txt, re.I)
+    if not m:
+        return None
+    voie = re.sub(r"\s+", " ", m.group(2)).strip(" -")
+    if len(voie.split()) < 2 or re.search(TROP_LONGUES, voie, re.I) or re.match(r"place (?:de (?:stationnement|parking)|pour|libre|dispo)", voie, re.I):
+        return None
+    return ((m.group(1) or "").strip(" ,") + " " + voie).strip()
+
+
+def geocoder(ads):
+    """Ajoute une position aux annonces sans coordonnées qui citent une rue (Locservice, Foncia, Bien'ici masqué…)."""
+    def un(a):
+        b = a.get("blurInfo") or {}
+        if b.get("type") in ("exact", "disk") or (a.get("price") or 9999) > BUDGET:
+            return
+        txt = (a.get("title") or "") + "\n" + re.sub(r"<[^>]+>", " ", a.get("description") or "")[:600]
+        q = adresse(txt)
+        if not q:
+            return
+        try:
+            r = json.loads(curl("https://api-adresse.data.gouv.fr/search/?" + urllib.parse.urlencode({"q": q + " Nice", "citycode": "06088", "limit": 1})))
+            f = (r.get("features") or [None])[0]
+        except Exception:
+            return
+        if not f:
+            return
+        pr = f["properties"]
+        # le nom trouvé doit reprendre un mot significatif de la voie citée (la recherche est tolérante aux fautes)
+        sans = lambda t: unicodedata.normalize("NFD", t.lower()).encode("ascii", "ignore").decode()
+        mots = [w for w in re.findall(r"[a-z]{4,}", sans(q)) if not re.fullmatch(VOIE, w)]
+        nom = sans(pr.get("name", ""))
+        if pr.get("score", 0) < 0.6 or not any(w[:5] in nom for w in mots):
+            return
+        lon, lat = f["geometry"]["coordinates"]
+        a["blurInfo"] = {"type": "exact" if pr.get("type") == "housenumber" else "street", "position": {"lat": lat, "lon": lon}}
+        a["geoLabel"] = pr.get("label")
+    with cf.ThreadPoolExecutor(8) as ex:
+        list(ex.map(un, ads))
+    return sum(1 for a in ads if a.get("geoLabel"))
+
+
 SOURCES = {"bienici": bienici, "orpi": orpi, "laforet": laforet, "foncia": foncia, "locservice": locservice}
 
 
@@ -237,6 +287,10 @@ def collect(jinka_path=None):
             got = []
         bilan[name] = len(got)
         ads += got
+    try:
+        bilan["adressesTrouvees"] = geocoder(ads)
+    except Exception as e:
+        log(f"géocodage: échec ({e})")
     return ads, bilan
 
 

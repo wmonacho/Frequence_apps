@@ -61,6 +61,7 @@ def main():
     known = set(json.load(open(known_path))) if os.path.exists(known_path) else set()
     os.makedirs(os.path.join(outdir, "photos"), exist_ok=True)
 
+    vu_le = __import__("datetime").datetime.now(__import__("datetime").timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
     raw, bilan = collect(sys.argv[4] if len(sys.argv) > 4 else None)
     items = prepare(raw)
     # Encore en ligne = présente chez une source aujourd'hui (même si les critères ont changé ou si elle a été fusionnée)
@@ -77,6 +78,7 @@ def main():
         p = photos.get(i["id"])
         i.pop("photoUrls", None)
         i["firstSeen"] = date
+        i["firstSeenAt"] = vu_le
         i["status"] = "active"
         if p:
             json.dump(p, open(os.path.join(outdir, "photos", i["id"] + ".json"), "w"))

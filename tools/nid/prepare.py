@@ -100,7 +100,9 @@ def prepare(ads):
         txt = (a.get("title") or "") + "\n" + desc
         b = a.get("blurInfo") or {}; pos = b.get("position") or {}
         precise = b.get("type") in ("exact", "disk") and pos.get("lat")
-        dm = round(dist(HOME, (pos["lat"], pos["lon"]))) if precise else None
+        rue = b.get("type") == "street" and pos.get("lat")       # position de la rue citée dans l'annonce
+        situe = precise or rue
+        dm = round(dist(HOME, (pos["lat"], pos["lon"]))) if situe else None
         surf = a.get("surfaceArea") or 0
         bed = a.get("bedroomsQuantity") or 0
         dpe = (a.get("energyClassification") or "").upper() or None
@@ -110,8 +112,8 @@ def prepare(ads):
         if a.get("flatSharing") or has(COLOC_WORDS, txt): continue
         tete = txt[:400]   # titre et début de description : là où l'annonce dit où est le bien
         if d == "Vieux Nice" or has(VIEUX_WORDS, a.get("title") or ""): continue
-        if precise and VIEUX[0] <= pos["lat"] <= VIEUX[1] and VIEUX[2] <= pos["lon"] <= VIEUX[3]: continue
-        exces, ou = position_secteur(a, d, tete, pos if precise else None)
+        if situe and VIEUX[0] <= pos["lat"] <= VIEUX[1] and VIEUX[2] <= pos["lon"] <= VIEUX[3]: continue
+        exces, ou = position_secteur(a, d, tete, pos if situe else None)
         if exces is None or exces > PALIERS[-1]: continue
         palier = next(i for i, lim in enumerate(PALIERS) if exces <= lim)
         zone = ZONE.get(d) or ou
@@ -153,6 +155,7 @@ def prepare(ads):
         if rdc: alertes.append("Rez-de-chaussée")
         if sans_asc: alertes.append(f"{a['floor']}e étage sans ascenseur")
         if dm is None: alertes.append("Adresse précise non communiquée : distance approximative")
+        elif rue: alertes.append(f"Distance estimée d'après la rue citée ({a.get('geoLabel')}) : numéro non précisé")
         if palier: alertes.insert(0, f"Environ {round(exces / 50) * 50:g} m en dehors du secteur voulu : gardée car {', '.join(q)}")
         if surf < 32: alertes.append(f"Petite surface ({surf:g} m²)")
         out.append({
