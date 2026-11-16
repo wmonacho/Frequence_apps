@@ -6,7 +6,7 @@ VIEUX = (43.6940, 43.6998, 7.2738, 7.2815)
 BUDGET = 1100   # € par mois charges comprises
 COLOC_WORDS = r"coloc|chambre (?:meubl[ée]e )?(?:à|a) louer|chambre dans (?:un|une)|flat ?shar"
 LOIN_WORDS = r"saint[- ]isidore|ariane|gairaut|caucade|saint[- ]augustin|pessicart|las planas|f[ée]ric|saint[- ]pierre|arenas|lanterne|st[- ]antoine|bellet|mont[- ]alban|vinaigrier|corniche|l.abadie|trinit[ée]|saint[- ]laurent|cagnes|villefranche"
-VIEUX_WORDS = r"vieille ville|place rossetti|rue droite|rue pairoli[eè]re"
+VIEUX_WORDS = r"vieille ville|place rossetti|rue droite|rue pairoli[eè]re|saint[- ]fran[çc]ois de paule|cours saleya|place du palais|rue de la pr[ée]fecture"
 CORE = {"Carré d'or", "Centre-ville", "Carabacel", "Médecin", "Garibaldi", "Le Port",
         "Promenade des Anglais - Rue de France", "Riquier", "Mont-Boron", "Thiers - Musicien", "Acropolis - République", "Saint-Roch"}
 ZONE = {"Carré d'or": "hypercentre", "Centre-ville": "hypercentre", "Carabacel": "hypercentre",
@@ -112,6 +112,8 @@ def prepare(ads):
         if a.get("flatSharing") or has(COLOC_WORDS, txt): continue
         tete = txt[:400]   # titre et début de description : là où l'annonce dit où est le bien
         if d == "Vieux Nice" or has(VIEUX_WORDS, a.get("title") or ""): continue
+        # « … - Vieux Nice » dans l'en-tête de l'annonce (mais pas « vue sur le Vieux Nice » plus loin)
+        if has(VIEUX_WORDS + r"|[-–:,]\s*vieux[- ]nice", txt[:250]): continue
         if situe and VIEUX[0] <= pos["lat"] <= VIEUX[1] and VIEUX[2] <= pos["lon"] <= VIEUX[3]: continue
         exces, ou = position_secteur(a, d, tete, pos if situe else None)
         if exces is None or exces > PALIERS[-1]: continue
