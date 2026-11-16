@@ -170,7 +170,7 @@ def prepare(ads):
             "balcony": bool(a.get("hasTerrace") or (a.get("balconyQuantity") or 0) > 0),
             "dpe": dpe, "ges": (a.get("greenhouseGazClassification") or "").upper() or None,
             "heating": a.get("heating"), "exposure": a.get("exposition"), "year": a.get("yearOfConstruction"),
-            "available": (a.get("availableDate") or "")[:10] or None, "published": (a.get("publicationDate") or "")[:10],
+            "available": (a.get("availableDate") or "")[:10] or None, "published": (a.get("publicationDate") or "")[:10] if not str(a.get("publicationDate") or "").startswith("1970") else None,
             "agency": a.get("accountDisplayName"), "district": d, "zone": zone,
             "palier": palier, "horsSecteur": round(exces / 50) * 50,
             "lat": pos.get("lat"), "lng": pos.get("lon"), "precise": bool(precise), "dist": dm,
