@@ -82,6 +82,8 @@ def main():
         i["status"] = "active"
         if p:
             json.dump(p, open(os.path.join(outdir, "photos", i["id"] + ".json"), "w"))
+            # même image en fichier .jpg : la tâche la dépose dans le stockage de fichiers de l'app (plus fiable que la base)
+            open(os.path.join(outdir, "photos", i["id"] + ".jpg"), "wb").write(base64.b64decode(p["data"].split(",", 1)[1]))
             i["photo"] = {"doc": "photos/" + i["id"], "n": p["n"]}
         out.append(i)
 
