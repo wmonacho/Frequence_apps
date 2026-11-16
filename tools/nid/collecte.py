@@ -11,7 +11,7 @@ Produit dans <dossier_sortie> :
   retirees.json    id connus qui ne sont plus en ligne
   resume.json      chiffres du jour
 """
-import base64, io, json, os, subprocess, sys
+import re, base64, io, json, os, subprocess, sys
 import concurrent.futures as cf
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -63,8 +63,11 @@ def main():
 
     raw, bilan = collect(sys.argv[4] if len(sys.argv) > 4 else None)
     items = prepare(raw)
-    live = {i["id"] for i in items}
-    new = [i for i in items if i["id"] not in known]
+    # Encore en ligne = présente chez une source aujourd'hui (même si les critères ont changé ou si elle a été fusionnée)
+    live = {re.sub(r"[^a-z0-9-]", "-", str(a.get("id", "")).lower())[:80] for a in raw}
+    # Une annonce dont un doublon est déjà dans la base n'est pas nouvelle
+    new = [i for i in items if i["id"] not in known and not set(i.get("alsoIds", [])) & known]
+    for i in items: i.pop("alsoIds", None)
 
     with cf.ThreadPoolExecutor(6) as ex:
         photos = dict(ex.map(photo_doc, new))

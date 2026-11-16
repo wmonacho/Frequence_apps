@@ -5,7 +5,7 @@ HOME = (43.698105, 7.272598)   # 12 avenue Félix Faure, 06000 Nice (Base Adress
 VIEUX = (43.6940, 43.6998, 7.2738, 7.2815)
 BUDGET = 1100   # € par mois charges comprises
 COLOC_WORDS = r"coloc|chambre (?:meubl[ée]e )?(?:à|a) louer|chambre dans (?:un|une)|flat ?shar"
-LOIN_WORDS = r"madeleine|parc imp[ée]rial|cimiez|saint[- ]isidore|ariane|pasteur|gairaut|fabron|caucade|magnan|saint[- ]augustin|bon[- ]voyage|pessicart|las planas|f[ée]ric|nice nord|saint[- ]maurice|lib[ée]ration|gorbella|ray\b|valrose|saint[- ]pierre|arenas|californie|lanterne|st[- ]antoine|bellet|mont[- ]alban|vinaigrier|corniche|l.abadie|trinit[ée]|saint[- ]laurent|cagnes|villefranche"
+LOIN_WORDS = r"madeleine|cimiez|saint[- ]isidore|ariane|pasteur|gairaut|fabron|caucade|saint[- ]augustin|bon[- ]voyage|pessicart|las planas|f[ée]ric|nice nord|saint[- ]maurice|gorbella|ray\b|saint[- ]pierre|arenas|californie|lanterne|st[- ]antoine|bellet|mont[- ]alban|vinaigrier|corniche|l.abadie|trinit[ée]|saint[- ]laurent|cagnes|villefranche"
 VIEUX_WORDS = r"vieille ville|place rossetti|rue droite|rue pairoli[eè]re"
 CORE = {"Carré d'or", "Centre-ville", "Carabacel", "Médecin", "Garibaldi", "Le Port",
         "Promenade des Anglais - Rue de France", "Riquier", "Mont-Boron", "Thiers - Musicien", "Acropolis - République", "Saint-Roch"}
@@ -14,6 +14,61 @@ ZONE = {"Carré d'or": "hypercentre", "Centre-ville": "hypercentre", "Carabacel"
         "Thiers - Musicien": "hypercentre", "Acropolis - République": "hypercentre",
         "Le Port": "port", "Riquier": "port", "Mont-Boron": "port", "Saint-Roch": "port"}
 CENTRE_WORDS = r"garibaldi|mass[ée]na|carr[ée] d.or|jean[- ]m[ée]decin|hyper[- ]?centre|port de nice|le port|place du pin|segurane|lympia|centre[- ]ville"
+
+# --- Secteur voulu (hypercentre + Port) et tolérance dégressive
+# Le secteur est l'union de quatre disques. Au-delà, une annonce est gardée si elle compense la distance :
+#   palier 1 (jusqu'à 500 m hors secteur)  : au moins 2 qualités, loyer ≤ 1 100 €
+#   palier 2 (500 m à 1 km)                 : au moins 3 qualités, loyer ≤ 1 050 €
+#   palier 3 (1 à 1,5 km)                   : au moins 4 qualités, loyer ≤ 1 000 €
+# Qualités : cuisine équipée, lumineux, rénové, ≥ 45 m², loyer ≤ 1 000 €, DPE A-C, balcon ou terrasse.
+SECTEUR = [((43.6968, 7.2668), 450, "hypercentre"),   # Masséna, Carré d'Or
+           ((43.7018, 7.2668), 400, "hypercentre"),   # Jean-Médecin
+           ((43.6990, 7.2760), 450, "hypercentre"),   # Félix Faure, Garibaldi
+           ((43.6962, 7.2855), 400, "port")]          # Port Lympia
+PALIERS = [0, 500, 1000, 1500]
+EXIGE = {1: (2, 1100), 2: (3, 1050), 3: (4, 1000)}
+# Quartiers Bien'ici dans le secteur (position non communiquée) : palier 0
+COEUR = {"Carré d'or", "Centre-ville", "Médecin", "Garibaldi", "Le Port"}
+# Centres approximatifs des quartiers et repères voisins, pour les annonces sans position précise
+LIEUX = {"Carabacel": (43.7030, 7.2735), "Thiers - Musicien": (43.7020, 7.2590), "Acropolis - République": (43.7055, 7.2790),
+         "Riquier": (43.7035, 7.2885), "Saint-Roch": (43.7115, 7.2860), "Mont-Boron": (43.6990, 7.3000),
+         "Promenade des Anglais - Rue de France": (43.6955, 7.2580), "Gambetta": (43.7020, 7.2520), "Gambetta - Fleurs": (43.7000, 7.2530),
+         "Vernier": (43.7065, 7.2545), "Libération": (43.7135, 7.2620), "Saint-Lambert - Bas-Cimiez": (43.7120, 7.2690),
+         "Bas-Cimiez": (43.7130, 7.2700), "Baumettes": (43.6940, 7.2480), "Cessole": (43.7150, 7.2560), "Borriglione": (43.7165, 7.2620),
+         "Valrose": (43.7170, 7.2690), "Parc Impérial - Le Piol": (43.7090, 7.2510), "Magnan": (43.6970, 7.2420),
+         "Saint-Philippe - Estienne d'Orves": (43.7000, 7.2420)}
+# Rues et repères cités dans le texte : None = dans le secteur, sinon position approximative
+GENERIQUE = r"hyper[- ]?centre|centre[- ]ville|nice centre"   # trop vague : compte seulement si aucun lieu précis n'est cité
+RUES = [(r"garibaldi|mass[ée]na|carr[ée] d.or|jean[- ]m[ée]decin|port de nice|le port|place du pin|s[ée]gurane|lympia"
+         r"|gioffredo|pastorelli|h[ôo]tel des postes|rue de la libert[ée]|rue paradis|rue de l.op[ée]ra|place magenta|massenet|dalpozzo"
+         r"|rue de russie|victor[- ]hugo|longchamp|chauvain|dubouchage|biscarra|gubernatis|avenue de verdun|alsace[- ]lorraine|f[ée]lix faure"
+         r"|bonaparte|cassini|lascaris|foresta|rue arson|[iî]le de beaut[ée]|fod[ée]r[ée]|scaliero|rue barla|bavastro|emmanuel philibert", None),
+        (r"musiciens|rossini|berlioz|gounod|meyerbeer", (43.7005, 7.2595)),
+        (r"gare thiers|gare de nice|avenue thiers|nice[- ]ville", (43.7045, 7.2620)),
+        (r"carabacel", (43.7030, 7.2735)), (r"r[ée]publique|acropolis", (43.7055, 7.2790)),
+        (r"riquier", (43.7035, 7.2885)), (r"saint[- ]roch", (43.7115, 7.2860)), (r"mont[- ]boron", (43.6990, 7.3000)),
+        (r"gambetta", (43.7020, 7.2520)), (r"vernier", (43.7065, 7.2545)), (r"lib[ée]ration", (43.7135, 7.2620)),
+        (r"borriglione", (43.7165, 7.2620)), (r"cessole", (43.7150, 7.2560)), (r"valrose", (43.7170, 7.2690)),
+        (r"baumettes", (43.6940, 7.2480)), (r"parc imp[ée]rial", (43.7090, 7.2510)), (r"magnan", (43.6970, 7.2420))]
+
+def hors_secteur(p):
+    """Distance (m) entre un point et le secteur voulu, et la zone la plus proche."""
+    best = min(SECTEUR, key=lambda z: dist(p, z[0]) - z[1])
+    return max(0, dist(p, best[0]) - best[1]), best[2]
+
+def position_secteur(a, d, tete, pos):
+    """(mètres hors secteur, zone) ou (None, None) si le bien est trop loin ou introuvable."""
+    if pos: return hors_secteur((pos["lat"], pos["lon"]))
+    if d in COEUR: return 0, ZONE.get(d, "hypercentre")
+    if d in LIEUX: return hors_secteur(LIEUX[d])
+    if d != "Nice": return None, None                      # quartier connu de Bien'ici mais lointain
+    if has(LOIN_WORDS, tete): return None, None             # quartier lointain cité (Cimiez, Corniche, Fabron…)
+    trouves = [(m.start(), p) for r, p in RUES for m in [re.search(r, tete, re.I)] if m]
+    if not trouves:
+        return (0, "hypercentre") if a.get("trustZone") or has(GENERIQUE, tete) else (None, None)
+    _, p = min(trouves, key=lambda t: t[0])               # le premier lieu cité est en général celui du bien
+    if p: return hors_secteur(p)
+    return 0, "port" if has(r"\bport\b|lympia|riquier|s[ée]gurane|place du pin|bonaparte|cassini|lascaris|arson|fod[ée]r|scaliero", tete) else "hypercentre"
 
 def dist(a, b):
     R = 6371000; p1, p2 = math.radians(a[0]), math.radians(b[0])
@@ -45,14 +100,12 @@ def prepare(ads):
         if (a.get("price") or 9999) > BUDGET: continue
         if a.get("flatSharing") or has(COLOC_WORDS, txt): continue
         tete = txt[:400]   # titre et début de description : là où l'annonce dit où est le bien
-        in_zone = d in CORE or (d == "Nice" and has(CENTRE_WORDS, tete) and not has(LOIN_WORDS, tete))
-        if a.get("trustZone") and not has(LOIN_WORDS, tete): in_zone = True
-        if not in_zone: continue
         if d == "Vieux Nice" or has(VIEUX_WORDS, a.get("title") or ""): continue
         if precise and VIEUX[0] <= pos["lat"] <= VIEUX[1] and VIEUX[2] <= pos["lon"] <= VIEUX[3]: continue
-        if precise and dm > 1800: continue
-        zone = ZONE.get(d) or ("port" if precise and pos["lon"] > 7.282 else "hypercentre")
-        if not precise and d == "Nice" and has(r"\bport\b|lympia|riquier|segurane|place du pin", tete): zone = "port"
+        exces, ou = position_secteur(a, d, tete, pos if precise else None)
+        if exces is None or exces > PALIERS[-1]: continue
+        palier = next(i for i, lim in enumerate(PALIERS) if exces <= lim)
+        zone = ZONE.get(d) or ou
         # --- critères
         lum = has(r"lumineu|lumi[eè]re|ensoleill|traversant|baie vitr|vue d[ée]gag|[ée]tage [ée]lev|plein sud|exposition sud", txt) or has(r"sud", a.get("exposition") or "")
         cuis = has(r"cuisine[^.\n]{0,40}(?<!non )[ée]quip|cuisine[^.\n]{0,25}am[ée]nag[ée]e et [ée]quip|kitchenette [ée]quip|cuisine ouverte [ée]quip", txt)
@@ -60,13 +113,19 @@ def prepare(ads):
         etud = has(r"[ée]tudiant|bail 9 mois|bail de 9 mois|bail mobilit", txt)
         rdc = (a.get("floor") == 0) or has(r"rez[- ]de[- ]chauss", txt)
         sans_asc = a.get("floor") and a.get("floor") >= 4 and a.get("hasElevator") is False
+        prix = a.get("price") or 9999
+        balcon = bool(a.get("hasTerrace") or (a.get("balconyQuantity") or 0) > 0)
+        qualites = [(cuis, "cuisine équipée"), (lum, "lumineux"), (bool(reno), "rénové"), (surf >= 45, f"{surf:g} m²"),
+                    (prix <= 1000, "loyer ≤ 1 000 €"), (dpe in ("A", "B", "C"), f"DPE {dpe}"), (balcon, "balcon ou terrasse")]
+        q = [l for v, l in qualites if v]
+        if palier and (len(q) < EXIGE[palier][0] or prix > EXIGE[palier][1]): continue
         s = 50
         if dm is not None: s += 20 if dm <= 400 else 15 if dm <= 800 else 10 if dm <= 1200 else 4 if dm <= 1700 else 0
         s += 8 * lum + 8 * cuis + 8 * bool(reno)
         s += {"A": 6, "B": 6, "C": 6, "D": 2, "E": -2, "F": -8}.get(dpe, 0)
         s += 5 if surf >= 45 else 2 if surf >= 38 else 0
         s += 3 if (a.get("price") or 9999) <= 1000 else 0
-        s -= 10 * etud + 5 * rdc + 3 * bool(sans_asc)
+        s -= 10 * etud + 5 * rdc + 3 * bool(sans_asc) + 7 * palier
         atouts, alertes = [], []
         if dm is not None and dm <= 800: atouts.append(f"À {round(dm/80)} min à pied du 12 avenue Félix Faure")
         if lum: atouts.append("Lumineux d'après l'annonce")
@@ -84,6 +143,7 @@ def prepare(ads):
         if rdc: alertes.append("Rez-de-chaussée")
         if sans_asc: alertes.append(f"{a['floor']}e étage sans ascenseur")
         if dm is None: alertes.append("Adresse précise non communiquée : distance approximative")
+        if palier: alertes.insert(0, f"Environ {round(exces / 50) * 50:g} m en dehors du secteur voulu : gardée car {', '.join(q)}")
         if surf < 32: alertes.append(f"Petite surface ({surf:g} m²)")
         out.append({
             "id": re.sub(r"[^a-z0-9-]", "-", a["id"].lower())[:80],
@@ -99,6 +159,7 @@ def prepare(ads):
             "heating": a.get("heating"), "exposure": a.get("exposition"), "year": a.get("yearOfConstruction"),
             "available": (a.get("availableDate") or "")[:10] or None, "published": (a.get("publicationDate") or "")[:10],
             "agency": a.get("accountDisplayName"), "district": d, "zone": zone,
+            "palier": palier, "horsSecteur": round(exces / 50) * 50,
             "lat": pos.get("lat"), "lng": pos.get("lon"), "precise": bool(precise), "dist": dm,
             "walk": round(dm / 80) if dm is not None else None,
             "lum": lum, "kitchen": cuis, "renovated": bool(reno), "student": etud,
@@ -124,7 +185,8 @@ def meme_bien(x, y):
         return dist((x["lat"], x["lng"]), (y["lat"], y["lng"])) <= 300
     a, b = _mots(x["description"]), _mots(y["description"])
     sim = len(a & b) / max(1, min(len(a), len(b)))
-    return sim >= 0.45 or (x["zone"] == y["zone"] and abs(x["price"] - y["price"]) <= 5 and abs(x["surface"] - y["surface"]) <= 0.6)
+    # une description courte partage vite la moitié de ses mots avec une autre : on exige assez de texte
+    return (sim >= 0.45 and min(len(a), len(b)) >= 20) or (x["zone"] == y["zone"] and abs(x["price"] - y["price"]) <= 5 and abs(x["surface"] - y["surface"]) <= 0.6)
 
 
 def dedoublonner(items):
@@ -135,6 +197,7 @@ def dedoublonner(items):
     for x in sorted(items, key=qualite, reverse=True):
         double = next((g for g in gardes if meme_bien(g, x)), None)
         if double:
+            double.setdefault("alsoIds", []).append(x["id"])
             double.setdefault("alsoOn", []).append({"label": x["srcLabel"] + (" · " + x["agency"] if x.get("agency") and x["src"] == "bienici" else ""), "url": x["url"]})
             double["photoUrls"] = double.get("photoUrls") or x.get("photoUrls")
         else:
