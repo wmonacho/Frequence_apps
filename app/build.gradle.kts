@@ -101,6 +101,12 @@ android {
             resValue("string", "app_name", "Socle")
             buildConfigField("String", "START_URL", "\"https://claude.ai/artifact/FDyBFBZK812JUyaVd51H7N\"")
         }
+        create("mue") {
+            dimension = "app"
+            applicationIdSuffix = ".mue"
+            resValue("string", "app_name", "Mue")
+            buildConfigField("String", "START_URL", "\"https://claude.ai/artifact/5QVDunkYaBPK4za12Pgn81\"")
+        }
     }
 
     buildFeatures {
